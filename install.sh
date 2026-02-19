@@ -1,8 +1,8 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/Skribb11es/homepage-nordvpn-widget"
-INSTALL_DIR="/opt/nordvpn-status"
-ENV_FILE="/etc/nordvpn-status.env"
+INSTALL_DIR="/opt/nord-status-server"
+ENV_FILE="/etc/nord-status-server.env"
 SERVICE_FILE_SRC="nord-status-server.service"
 SERVICE_FILE_DST="/etc/systemd/system/nord-status-server.service"
 
@@ -15,7 +15,7 @@ fi
 
 echo "[1/7] installing python..."
 apt update
-apt install -y git python3 curl
+apt install -y git python3
 
 echo "[2/7] installing Flask..."
 apt install python3-flask
