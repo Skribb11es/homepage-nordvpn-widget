@@ -1,5 +1,6 @@
 import subprocess
 import os
+import re
 from flask import Flask, jsonify, request, abort
 
 app = Flask(__name__)
@@ -56,9 +57,44 @@ def parse_nordvpn_status(raw: str):
         elif k == "current protocol":
             data["protocol"] = v
         elif k == "transfer":
-            data["transfer"] = v
+            # parse strings like "1.45 GiB received, 486.08 MiB sent"
+            transfer_str = v or ""
+            # find segments like '1.45 GiB received' or '486.08 MiB sent'
+            parts = re.findall(r'([\d\.]+\s*[A-Za-z]+)\s*(received|sent)', transfer_str, flags=re.IGNORECASE)
+            received = sent = None
+            for val, label in parts:
+                if label.lower().startswith('received'):
+                    received = val.strip()
+                elif label.lower().startswith('sent'):
+                    sent = val.strip()
+
+            if received and sent:
+                data["transfer"] = f"{received} \u2193 | {sent} \u2191"
+            else:
+                # fallback to original string if parsing didn't match
+                data["transfer"] = transfer_str
         elif k == "uptime":
-            data["uptime"] = v
+            # parse strings like "5 hours 55 minutes 29 seconds" -> HH:MM:SS
+            uptime_str = v or ""
+            matches = re.findall(r"(\d+)\s*(day|days|hour|hours|minute|minutes|second|seconds)", uptime_str, flags=re.IGNORECASE)
+            days = hours = minutes = seconds = 0
+            for num, unit in matches:
+                n = int(num)
+                unit = unit.lower()
+                if unit.startswith("day"):
+                    days = n
+                elif unit.startswith("hour"):
+                    hours = n
+                elif unit.startswith("minute"):
+                    minutes = n
+                elif unit.startswith("second"):
+                    seconds = n
+
+            total_seconds = days * 86400 + hours * 3600 + minutes * 60 + seconds
+            hh = total_seconds // 3600
+            mm = (total_seconds % 3600) // 60
+            ss = total_seconds % 60
+            data["uptime"] = f"{hh:02}:{mm:02}:{ss:02}"
 
     return data
 
