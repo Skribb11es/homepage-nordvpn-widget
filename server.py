@@ -75,12 +75,22 @@ def check_auth():
 
     return token_qs.strip() == API_TOKEN
 
+def get_iface_ipv4(iface="eth0" if not os.environ.get("NORDVPN_STATUS_IFACE") else os.environ.get("NORDVPN_STATUS_IFACE")):
+    try:
+        out = subprocess.check_output(
+            ["bash", "-lc", f"ip -4 addr show {iface} | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){{3}}' | head -n1"],
+            text=True
+        ).strip()
+        return out if out else None
+    except Exception:
+        return None
+
 @app.route("/status", methods=["GET"])
 def status():
     if not check_auth():
         abort(401)
 
-    raw = run_cmd(["nordvpn", "status"])
+    raw = run_cmd(["/usr/bin/nordvpn", "status"])
     parsed = parse_nordvpn_status(raw)
 
     public_ip = run_cmd(["bash", "-lc", "curl -s --max-time 2 https://api.ipify.org || true"])
@@ -92,9 +102,10 @@ def status():
 @app.route("/", methods=["GET"])
 def root():
     return jsonify({
-        "service": "nordvpn-status",
+        "service": "nord-status-server",
         "endpoints": ["/status"]
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8787)
+    bind_ip = get_iface_ipv4("eth0") or "0.0.0.0"
+    app.run(host=bind_ip, port=8787)
