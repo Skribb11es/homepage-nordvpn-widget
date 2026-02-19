@@ -4,9 +4,12 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+User=root
+Group=root
 Type=simple
 EnvironmentFile=/etc/nord-status-server.env
-ExecStart=/usr/bin/python3 /opt/nord-status-server/server.py
+ExecStart=/usr/bin/python3 -m gunicorn -w 1 -b 192.168.10.9:8787 server:app
+WorkingDirectory=/opt/nord-status-server
 Restart=always
 RestartSec=3
 
