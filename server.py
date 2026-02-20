@@ -67,7 +67,7 @@ def parse_nordvpn_status(raw: str):
                     sent = val.strip()
 
             if received and sent:
-                data["transfer"] = f"{received} \u2193 | {sent} \u2191"
+                data["transfer"] = f"{received}\u2193\n{sent}\u2191"
             else:
                 data["transfer"] = transfer_str
         elif k == "uptime":
