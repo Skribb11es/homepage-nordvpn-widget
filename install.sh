@@ -54,6 +54,7 @@ cp -f "$TMP_DIR/$SERVICE_FILE_SRC" "$SERVICE_FILE_DST"
 
 systemctl daemon-reload
 systemctl enable nord-status-server.service
+systemctl start nord-status-server.service
 
 rm -rf "$TMP_DIR"
 
