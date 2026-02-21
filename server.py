@@ -62,9 +62,9 @@ def parse_nordvpn_status(raw: str):
             received = sent = None
             for val, label in parts:
                 if label.lower().startswith('received'):
-                    received = val.strip()
+                    received = val.strip().replace(" ", "")
                 elif label.lower().startswith('sent'):
-                    sent = val.strip()
+                    sent = val.strip().replace(" ", "")
 
             if received and sent:
                 data["transfer"] = f"{received}\u2193\n{sent}\u2191"
